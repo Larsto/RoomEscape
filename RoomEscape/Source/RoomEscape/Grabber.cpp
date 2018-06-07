@@ -2,8 +2,11 @@
 
 #include "Grabber.h"
 #include "Gameframework/Actor.h"
-#include "Engine/World.h"
+#include "Components/InputComponent.h"
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
+#include "Engine/World.h"
+
+
 
 #define OUT
 // Sets default values for this component's properties
@@ -23,7 +26,42 @@ void UGrabber::BeginPlay()
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning, TEXT("I'm alive!"));
+
+	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+
+	if (InputComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Input component found!"));
+		InputComponent->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
+		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+	}
+
+	else
+	{
+
+	}
+
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	if (PhysicsHandle) 
+	{
+
+	}
+
+	else 
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s missing physics handle component"), *GetOwner()->GetName())
+	}
 	
+}
+
+void UGrabber::Grab() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab pressed"));
+}
+
+void UGrabber::Release() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab released"));
 }
 
 
@@ -48,5 +86,23 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		0.f,
 		10.f
 	);
+
+	FCollisionQueryParams TraceParameters(FName(TEXT("")), false, GetOwner());
+
+	FHitResult Hit;
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT Hit,
+		PlayerViewPointLocation,
+		LineTraceEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		TraceParameters
+	);
+
+	AActor* ActroHit = Hit.GetActor();
+	if (ActroHit) {
+		UE_LOG(LogTemp, Warning, TEXT("Looking at %s"), *(ActroHit->GetName()));
+	}
+	
+
 }
 
